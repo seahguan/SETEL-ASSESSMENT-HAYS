@@ -2,66 +2,83 @@
 Resource  ../Resource/PO/LandingPage.robot
 Resource  ../Resource/PO/TopNavSection.robot
 Resource  ../Resource/PO/SearchResult.robot
-Resource  ../Resource/PO/Product.robot
-Resource  ../Resource/PO/ShoppingCart.robot
-Resource  ../Resource/PO/SignIn.robot
+
+*** Variables ***
+${ELEMENT_LOCATION2} =  //*[@class='s-item__wrapper clearfix']
+
 
 *** Keywords ***
 Load Page
-    [Arguments]    ${URL}
-    LandingPage.Load    ${URL}
+    [Arguments]    ${URL2}
+    LandingPage.Load    ${URL2}
     LandingPage.Verify EbayPage Loaded
+    ${WINDOWS_TITLE}=  get window titles
 
-Search for Products
+Search for Products Ebay
     [Arguments]    ${SEARCH_TERM}
     wait until page contains    ebay
-    TopNavSection.Search for Products   ${SEARCH_TERM}
-#    SearchResult.Verify Search Completed   ${SEARCH_TERM}
+    TopNavSection.EbaySearch for Products   ${SEARCH_TERM}
+    SearchResult.Verify EbaySearch Completed    ${SEARCH_TERM}
 
-Select Product from Search Results
-    SearchResult.Click Product link
-    Product.Verify Product Details Page Loaded
+Retrieve Ebay Product Details
+     ${Index}    get element count    Xpath=${ELEMENT_LOCATION2}        # get total rec of searched prouct
 
-Add Product to Cart
-    Product.Add to Cart
-    ShoppingCart.Verify Product Added
+    FOR  ${Index}  IN RANGE  1  10   #${Index}+1
+#        #   TO Retrieve the PRoduct NAme
+#        ${TMP_LOCATION} =  set Variable  //*[@data-view='mi:1686|iid:${Index}']//*[@class='s-item__title']
+#        ${present}=  Run Keyword And Return Status    Element Should Be Visible   Xpath=${TMP_LOCATION}
+#        Run Keyword If  ${present} == True  Retrieve Ebay Product Name  ${TMP_LOCATION}
+#        ...  ELSE  Initial Ebay Product Name
 
-Begin Checkout
-    ShoppingCart.Proceed to Checkout
-    SignIn.Verify Page Loaded
+        #   TO Retrieve the PRoduct Prices
+        ${TMP_LOCATION} =  set Variable  //*[@data-view='mi:1686|iid:${Index}']//*[@class='s-item__price']
+        ${present}=  Run Keyword And Return Status  Element Should Be Visible   Xpath=${TMP_LOCATION}
+        Run Keyword If  ${present} == True  Retrieve Ebay Product Prices  ${TMP_LOCATION}
+        ...  ELSE  Initial Ebay Product Price
 
-Sign In Using Mobile
-    [Arguments]    ${MOBILE_NO}  ${PASSWORD}
-    TopNavSection.Sign In
-    SignIn.Verify Page Loaded
-    SignIn.Login with Mobile NO  ${MOBILE_NO}   ${PASSWORD}
+#        #   TO Retrieve the PRoduct Link
+#        ${TMP_LOCATION} =  set Variable  //*[@data-view='mi:1686|iid:${Index}']//*[@class='s-item__title']
+#        ${present}=  Run Keyword And Return Status  Element Should Be Visible   Xpath=${TMP_LOCATION}   attribute=href
+#        Run Keyword If  ${present} == True  Retrieve Ebay Product Link  ${TMP_LOCATION}
+#        ...  ELSE  Initial Ebay Product Link
 
-Verify Cart Type 2
-    Verify added Cart Type2
 
-Remove and Item from Cart
-    ShoppingCart.Remove and Item from Cart
+        log  ${PRICES}
+        log  ${WINDOWS_TITLE}
+        log  ${PRODUCTS_NAME}
+#        log  ${HREF_LINKS}
 
-Proceed Checkout
-    searchResult.Click Proceed to checkout Button
+        ${COMBINE_INFO} =  Catenate    SEPARATOR=|   ${PRICES}  ${WINDOWS_TITLE}  ${PRODUCTS_NAME}  ${PRICES}  ${HREF_LINKS}
+        append to list    ${MASTER_LIST}    ${COMBINE_INFO}
+        log  ${COMBINE_INFO}
+        log  ${MASTER_LIST}
+    END
 
-Verify Sign-In Page
-    wait until page contains    Sign-In
+#    Sort order verification     ${MASTER_LIST}
 
-Sign In Using UserName
-    [Arguments]    ${EMAIL_ADDR}  ${PASSWORD}
-    TopNavSection.Sign In
-    SignIn.Verify Page Loaded
-    SignIn.Login with Email  ${EMAIL_ADDR}  ${PASSWORD}
+Retrieve Ebay Product Name
+    [Arguments]    ${Ele_Addr}
+    ${PRODUCTS_NAME} =  get text    Xpath=${Ele_Addr}
+    set global variable  ${PRODUCTS_NAME}
 
-Sign In Using Incorrect Mobile NO
-    [Arguments]    ${MOBILE_NO}
-    TopNavSection.Sign In
-    SignIn.Verify Page Loaded
-    SignIn.Login with Invalid Mobile NO  ${MOBILE_NO}
+Retrieve Ebay Product Prices
+    [Arguments]    ${Ele_Addr}
+    ${PRICES} =  get text    Xpath=${Ele_Addr}
+    set global variable  ${PRICES}
 
-Sign In Using Incorrect Email Acc
-    [Arguments]    ${EMAIL_ADDR}
-    TopNavSection.Sign In
-    SignIn.Verify Page Loaded
-    SignIn.Login with Invalid acc   ${EMAIL_ADDR}
+Retrieve Ebay Product Link
+    [Arguments]    ${Ele_Addr}
+    ${HREF_LINKS} =  get element attribute    Xpath=${Ele_Addr}     attribute=href
+    set global variable  ${HREF_LINKS}
+
+Initial Ebay Product Name
+    set global variable    ${PRODUCTS_NAME}   '- NO Product Name FOund -'
+    [return]    ${PRODUCTS_NAME}
+
+Initial Ebay Product Link
+    set global variable    ${HREF_LINKS}   '- NO Link Found -'
+    [return]    ${HREF_LINKS}
+
+Initial Ebay Product Price
+    set global variable    ${PRICES}  0.00
+    [return]    ${PRICES}
