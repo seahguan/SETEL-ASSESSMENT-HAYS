@@ -51,53 +51,28 @@ Get Total Count
 
 Write Result Into Report
     [Arguments]    @{List_String}
+    [Tags]    Write into Report
     FOR  ${Index}  IN RANGE  1  ${CNT}
         ${Single}=  set variable    ${List_String}[${Index}]
+        ${Single}  replace string    ${Single}  (?<![/\d])\d{1,2}/\d{1,2}/\d{4}(?![/\d])  -
+
         @{Word}=   Split String    ${Single}     ;
-#        Write Each Product Info     @{Word}
-        ${Index2}=  set variable    1
-        FOR  ${i}  IN RANGE  2  5
-            ${Index2}  Evaluate   ${Index2}+1
-
-            Run Keyword If  ${Index2} == 2   Write Web Name  ${word}${i}
-            ...  ELSE If  ${Index2} == 3   Write Product Name  ${word}${i}
-            ...  ELSE If  ${Index2} == 4   Write Price  ${word}${i}
-            ...  ELSE If  ${Index2} == 5   Write Product Link  ${word}${i}
-
-#        END
+        Write Each Product Info     ${Word}
     END
-
-
-*** Keywords ***
-Write Web Name
-    [Arguments]    ${wording}
-    ${OutputString}=  Catenate  'Web Title : '  ${wording}
-    log  ${OutputString}
-
-Write Product Name
-    [Arguments]    ${wording}
-    ${OutputString}=  Catenate  'Product Name : '  ${wording}
-    log  ${OutputString}
-
-Write Web Price
-    [Arguments]    ${wording}
-    ${OutputString}=  Catenate  'Prices : '  ${wording}
-    log  ${OutputString}
-
-Write Product Link
-    [Arguments]    ${wording}
-    ${OutputString}=  Catenate  'Product Link : '  ${wording}
-    log  ${OutputString}
 
 Write Each Product Info
-    [Arguments]    ${word}
-    ${Index2}=  set variable    0
-    FOR  ${i}  IN RANGE  1  5
-        ${Index2}  Evaluate   ${Index2}+1
-
-        Run Keyword If  ${Index2} ==  2  Write Web Name  ${word}${i}
-        ...  ELSE If  ${Index2} ==  3  Write Product Name  ${word}${i}
-        ...  ELSE If  ${Index2} ==  4  Write Price  ${word}${i}
-        ...  ELSE If  ${Index2} ==  5  Write Product Link  ${word}${i}
-
-    END
+    [Arguments]    ${wording}
+    [Tags]    Output Report
+#    ${OutputString}  Replace String Using Regexp  ${wording}  (?<![/\d])\d{1,2}/\d{1,2}/\d{4}(?![/\d])   -
+    ${OutputString_Title}=  Catenate  'Web Title : '  ${wording}[1]
+    set global variable  ${OutputString_Title}
+    ${OutputString_Product}=  Catenate  'Product Name : '  ${wording}[2]
+    set global variable  ${OutputString_Product}
+    ${OutputString_Price}=  Catenate  'Prices : '  ${wording}[3]
+    set global variable  ${OutputString_Price}
+    ${OutputString_Link}=  Catenate  'Product Link : '  ${wording}[4]
+    set global variable  ${OutputString_Link}
+    log  ${OutputString_Title}
+    log  ${OutputString_Product}
+    log  ${OutputString_Price}
+    log  ${OutputString_Link}
